@@ -12,13 +12,16 @@ if "is_admin" not in st.session_state:
 
 with st.sidebar:
     st.markdown("### Access")
-    admin_name = st.text_input("Password", placeholder="admin", type="password")
+    admin_name = st.text_input("Password", type="password")
     admin_toggle = st.toggle("관리자 모드", value=st.session_state.is_admin)
 
-    if admin_toggle and admin_name.strip().lower() == "admin":
-        st.session_state.is_admin = True
-        st.success("admin ON")
-    elif not admin_toggle:
+    if admin_toggle:
+        if admin_name.strip().lower() == "admin":
+            st.session_state.is_admin = True
+            st.success("admin ON")
+        elif admin_name != "":
+            st.error("비밀번호가 틀렸습니다.")
+    else:
         st.session_state.is_admin = False
         st.info("admin OFF")
 
