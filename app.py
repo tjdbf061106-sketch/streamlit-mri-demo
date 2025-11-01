@@ -7,6 +7,45 @@ st.set_page_config(page_title="AI 치매 예측 시스템", page_icon="🧠", la
 
 if "page" not in st.session_state:
     st.session_state.page = "info"
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
+
+with st.sidebar:
+    st.markdown("### Access")
+    admin_name = st.text_input("Password", placeholder="admin", type="password")
+    admin_toggle = st.toggle("관리자 모드", value=st.session_state.is_admin)
+
+    if admin_toggle and admin_name.strip().lower() == "admin":
+        st.session_state.is_admin = True
+        st.success("admin ON")
+    elif not admin_toggle:
+        st.session_state.is_admin = False
+        st.info("admin OFF")
+
+    st.divider()
+
+    if st.session_state.is_admin:
+        st.markdown("### 페이지 이동")
+        target = st.selectbox(
+            "바로 이동",
+            ["info", "upload", "analysis", "result", "admin"],
+            format_func=lambda x: {
+                "info": "1. 환자 정보",
+                "upload": "2. MRI 업로드",
+                "analysis": "3. 분석 진행",
+                "result": "4. 결과",
+                "admin": "*관리자 대시보드*",
+            }[x],
+        )
+        if st.button("이동 ▶"):
+            st.session_state.page = target
+            st.rerun()
+
+        if st.button("관리자 대시보드 열기"):
+            st.session_state.page = "admin"
+            st.rerun()
+    else:
+        st.caption("admin 전용 기능입니다.")
 
 if st.session_state.page == "info":
     st.title("🧍‍♀️ 환자 인적사항 입력")
@@ -24,7 +63,7 @@ if st.session_state.page == "info":
     next_button = st.button("다음으로 ➡️")
 
     if next_button:
-        master_key = name.strip().lower() == "admin"  
+        master_key = name.strip().lower() == "admin"
         if not master_key and (not name or age == 0 or height == 0 or weight == 0 or not gender):
             st.warning("⚠️ 이름, 나이, 키, 몸무게, 성별을 모두 입력해주세요.")
         else:
