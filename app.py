@@ -104,9 +104,61 @@ elif st.session_state.page == "analysis":
     with st.spinner("AI가 분석을 진행하고 있습니다. 잠시만 기다려주세요."):
         time.sleep(3)
 
-    result = random.choice(["정상 뇌로 판단됩니다.", "치매 가능성이 있습니다."])
+    result = random.choice(["정상", "치매 가능성 있음"])
+    severity = random.choice(["경도", "중등도", "중증"])
 
-    st.success("AI 분석이 완료되었습니다 ✅")
-    st.subheader(f"🧩 예측 결과: **{result}**")
-    st.info("⚠️ 이 결과는 예시이며, 실제 의료 판단이 아닙니다.")
+    st.session_state.analysis_result = {
+        "진단 결과": result,
+        "중증도": severity
+    }
+
+    st.session_state.page = "result"
+    st.rerun()
+
+elif st.session_state.page == "result":
+    info = st.session_state.patient_info
+    result = st.session_state.analysis_result
+
+    st.title("🧾 AI 치매 예측 결과 보고서")
+
+    st.markdown(f"""
+    **이름:** {info['이름']}  
+    **나이:** {info['나이']}세  
+    **성별:** {info['성별']}  
+    **키:** {info['키']} cm  
+    **몸무게:** {info['몸무게']} kg  
+    **기저질환:** {', '.join(info['기저질환']) if info['기저질환'] else '없음'}
+    """)
+
+    st.divider()
+    st.subheader("🧠 AI 예측 결과")
+    st.markdown(f"**진단 결과:** {result['진단 결과']}")
+    st.markdown(f"**치매 중증도:** {result['중증도']}")
+
+    st.divider()
+    st.subheader("💊 약물 추천")
+
+    base_drugs = {
+        "도네페질": ["간질환(간경화 등)"],
+        "리바스티그민": ["심장질환"],
+        "메만틴": ["당뇨"]
+    }
+
+    recommended = []
+    if result["진단 결과"] == "정상":
+        st.write("치매 진단 결과가 정상으로, 약물 복용이 필요하지 않습니다.")
+    else:
+        for drug, contraindications in base_drugs.items():
+            if not any(d in info["기저질환"] for d in contraindications):
+                recommended.append(drug)
+
+        if recommended:
+            st.markdown("**추천 약물:** " + ", ".join(recommended))
+        else:
+            st.warning("⚠️ 선택된 기저질환으로 인해 사용 가능한 치매 약물이 없습니다.")
+
+        st.caption("※ 특정 질환(예: 간질환, 심장질환, 당뇨)에 따라 일부 약물은 제외되었습니다.")
+
+    st.divider()
+    st.info("⚠️ 본 결과는 예시이며, 실제 의료 판단을 대체하지 않습니다.")
     st.button("🔁 처음으로 돌아가기", on_click=lambda: st.session_state.update(page="info"))
